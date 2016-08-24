@@ -39,16 +39,12 @@ std::shared_ptr<IChannel> dnp3::create_dnp3_channel(std::string name, int port)
 
     if (!manager)
     {
-        // Specify what log levels to use. NORMAL is warning and above
-        // You can add all the comms logging by uncommenting below.
         const uint32_t FILTERS = levels::NORMAL | levels::ALL_COMMS;
         manager = std::make_shared<asiodnp3::DNP3Manager>(50, ConsoleLogger::Create());
 
         IChannel *ch = manager->AddTCPServer(name.c_str(), FILTERS, opendnp3::ChannelRetry::Default(), "0.0.0.0", port);
         channel.reset(ch);
 
-        // Optionally, you can bind listeners to the channel to get state change notifications
-        // This listener just prints the changes to the console
         channel->AddStateListener([](ChannelState state) {
             std::cout << "channel state: " << ChannelStateToString(state) << std::endl;
         });
@@ -64,34 +60,24 @@ void dnp3::Initialize(void)
 
     stackConfig = std::make_shared<OutstationStackConfig>();
 
-    // Specify the shape of your database and the size of the event buffers
     stackConfig->dbTemplate = DatabaseTemplate::AnalogOnly(22);
     stackConfig->outstation.eventBufferConfig = EventBufferConfig::AllTypes(22);
 
-    // Override default outstation parameters
     stackConfig->outstation.params.allowUnsolicited = true;
 
-    //TODO: Parametric local and remote addresses
-    // Override the default link layer settings
     stackConfig->link.LocalAddr = LocalAddr;
     stackConfig->link.RemoteAddr = RemoteAddr;
 
-    // Create a new outstation with a log level, command handler, and
-    // config info this	returns a thread-safe interface used for
-    // updating the outstation's database.
     auto sc = stackConfig.get();
     outstation = channel->AddOutstation("outstation", SuccessCommandHandler::Instance(), DefaultOutstationApplication::Instance(), *sc);
 
-    // You can optionally change the default reporting variations or class assignment prior to enabling the outstation
     ConfigureDatabase(outstation->GetConfigView());
 
-    // Enable the outstation and start communications
     outstation->Enable();
 }
 
 void dnp3::ConfigureDatabase(DatabaseConfigView view)
 {
-    // example of configuring analog index 0 for Class2 with floating point variations by default
     view.analogs[0].variation = StaticAnalogVariation::Group30Var5;
     view.analogs[0].metadata.clazz = PointClass::Class2;
     view.analogs[0].metadata.variation = EventAnalogVariation::Group32Var7;
@@ -108,7 +94,7 @@ int dnp3::set_value(std::string name, double value) throw()
         MeasUpdate tx(outstation, UTCTimeSource::Instance().Now());
         tx.Update(Analog(value), index);
     }
-    catch (std::out_of_range e)
+    catch (std::out_of_range &e)
     {
         std::string msg = name + ": " + e.what();
         throw std::out_of_range(msg);
