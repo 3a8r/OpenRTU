@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <iostream>
-#include "database.h"
+#include "Rtdb.h"
 
 using namespace std;
 
 int main()
 {
-	cout << "Hello World";
+	Rtdb::Instance()->SetConfigFileName("config.sqlite");
+	Rtdb::Instance()->SetProjectPath("/home/saber/Git/RTU/OpenRTU/config/");
+	Rtdb::Instance()->LoadConfigFile();
+
 	return 0;
 }

@@ -10,31 +10,26 @@
 
 using namespace std;
 
-class SqlHelper
-{
-public:
-	SqlHelper(char* filename);
-    ~SqlHelper();
-
-    bool open(char* filename);
-    vector<vector<string> > query(char* query);
-    bool command(char* query);
-    bool getautocommit();
-    map<string,int> getcolnamesmap(char* query);
-    void close();
-	int getError();
-
-private:
-    sqlite3 *database;
-public:
-	static int NumberOfInstance;
-};
-
-
-using namespace std;
-
 class database{
 public:
+    bool Open(const char* filename);
+
+    vector<vector<string> > Query(char* query);
+
+    bool Command(char* query);
+
+    bool getautocommit();
+
+    map<string,int> getcolnamesmap(char* query);
+
+    void close();
+
+    int getError();
+
+private:
+    sqlite3 *db;
+public:
+	static int NumberOfInstance;
 	typedef enum{
 
 		Equal,
@@ -50,7 +45,6 @@ public:
 	} SQLOperator;
 
 private:
-	SqlHelper* Helper;
 	std::string GetSQLOperatorString(SQLOperator op);
 
 public:
@@ -59,7 +53,7 @@ public:
 	~database();
 	static int GetNumberOfAccess()
 	{
-		return SqlHelper::NumberOfInstance;
+		return NumberOfInstance;
 	}
 	vector< vector<string> > GetTableValues(
 			string &tblname,
@@ -78,11 +72,11 @@ public:
 
 	bool ExecuteCommand(string& command)
 	{
-		return Helper->command((char*)command.c_str());
+		return Command((char*)command.c_str());
 	}
 	int GetError()
 	{
-		return Helper->getError();
+		return getError();
 	}
 
 };

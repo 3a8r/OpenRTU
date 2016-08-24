@@ -2,41 +2,22 @@
 #include "database.h"
 #include <iostream>
 
-int SqlHelper::NumberOfInstance = 0;
+int database::NumberOfInstance = 0;
 
-SqlHelper::SqlHelper(char* filename)
+
+bool database::Open(const char* filename)
 {
-	NumberOfInstance++;
-	database = NULL;
-    if( !open(filename) )
-    {
-    	throw("Open Database Error.");
-
-    }
-}
-
-SqlHelper::~SqlHelper()
-{
-	if(database != NULL)
-	{
-		close();
-	}
-	NumberOfInstance--;
-}
-
-bool SqlHelper::open(char* filename)
-{
-    if(sqlite3_open(filename, &database) == SQLITE_OK)
+    if(sqlite3_open(filename, &db) == SQLITE_OK)
         return true;
 
     return false;
 }
 
-vector<vector<string> > SqlHelper::query(char* query)
+vector<vector<string> > database::Query(char* query)
 {
     sqlite3_stmt *statement;
     vector<vector<string> > results;
-    if(sqlite3_prepare_v2(database, query, -1, &statement, 0) == SQLITE_OK)
+    if(sqlite3_prepare_v2(db, query, -1, &statement, 0) == SQLITE_OK)
     {
         int cols = sqlite3_column_count(statement);
         int result = 0;
@@ -63,17 +44,17 @@ vector<vector<string> > SqlHelper::query(char* query)
         sqlite3_finalize(statement);
     }
 
-    string error = sqlite3_errmsg(database);
+    string error = sqlite3_errmsg(db);
     if(error != "not an error") cout << query << " " << error << endl;
 
     return results;
 }
 
-bool SqlHelper::command(char* query)
+bool database::Command(char* query)
 {
     sqlite3_stmt *statement;
     bool res = false;
-    if(sqlite3_prepare_v2(database, query, -1, &statement, 0) == SQLITE_OK)
+    if(sqlite3_prepare_v2(db, query, -1, &statement, 0) == SQLITE_OK)
     {
         int result = 0;
         result = sqlite3_step(statement);
@@ -84,25 +65,25 @@ bool SqlHelper::command(char* query)
         sqlite3_finalize(statement);
     }
 
-    string error = sqlite3_errmsg(database);
+    string error = sqlite3_errmsg(db);
     if(error != "not an error") cout << query << " " << error << endl;
 
     return res;
 }
 
-bool SqlHelper::getautocommit()
+bool database::getautocommit()
 {
-	return !(sqlite3_get_autocommit(database) > 0);
+	return !(sqlite3_get_autocommit(db) > 0);
 }
 
 
 
-map<string,int> SqlHelper::getcolnamesmap(char* query)
+map<string,int> database::getcolnamesmap(char* query)
 {
 	sqlite3_stmt *stmt;
 	map<string,int> values;
 
-	if( sqlite3_prepare_v2(database, query, -1, &stmt, 0) == SQLITE_OK)
+	if( sqlite3_prepare_v2(db, query, -1, &stmt, 0) == SQLITE_OK)
 	{
 		int cols = sqlite3_column_count(stmt);
 		for(int col = 0; col < cols; col++)
@@ -113,7 +94,7 @@ map<string,int> SqlHelper::getcolnamesmap(char* query)
 		sqlite3_finalize(stmt);
 	}
 
-	string error = sqlite3_errmsg(database);
+	string error = sqlite3_errmsg(db);
 	if(error != "not an error") cout << query << " " << error << endl;
 
 	return values;
@@ -121,34 +102,42 @@ map<string,int> SqlHelper::getcolnamesmap(char* query)
 
 }
 
-void SqlHelper::close()
+void database::close()
 {
-	int sqliteApi = sqlite3_close(database);
+	int sqliteApi = sqlite3_close(db);
 
 	if(	sqliteApi != SQLITE_OK)
 	{
-		cout << "Error In Closing Database File: " << sqlite3_errmsg(database);;
+		cout << "Error In Closing Database File: " << sqlite3_errmsg(db);;
 	}
 }
 
-int SqlHelper::getError()
+int database::getError()
 {
-	return sqlite3_errcode(database);
+	return sqlite3_errcode(db);
 }
 
 
-database::database(string filename)
+database::database(std::string filename)
 {
-	Helper = NULL;
+
 	try
 	{
-		Helper = new SqlHelper( (char*)filename.c_str() );
+		NumberOfInstance++;
+		db = NULL;
+	    if( !Open(filename.c_str()) )
+	    {
+	    	throw("Open Database Error.");
+
+	    }
 	}
 	catch(const char* message)
 	{
+		if(db != NULL)
+		{
+			close();
+		}
 		cout << message;
-		delete Helper;
-		Helper = NULL;
 		throw("DBAccess Failed To Initialize\n");
 	}
 
@@ -156,10 +145,11 @@ database::database(string filename)
 
 database::~database()
 {
-	if(Helper != NULL)
+	if(db != NULL)
 	{
-		delete Helper;
+		close();
 	}
+	NumberOfInstance--;
 }
 
 std::string database::GetSQLOperatorString(SQLOperator op)
@@ -267,7 +257,7 @@ vector< vector<string> > database::GetTableValues(
 	{
 		query = (" "+(*additional));
 	}
-	return Helper->query((char*) query.c_str());
+	return Query((char*) query.c_str());
 
 }
 
@@ -275,45 +265,45 @@ map<string,int> database::GetTableFields(string &tblname)
 {
 	string query = "SELECT * FROM ";
 	query+= tblname;
-	return Helper->getcolnamesmap((char*)query.c_str());
+	return getcolnamesmap((char*)query.c_str());
 
 }
 
 map<string,int> database::GetQueryFields(string &query)
 {
-	return Helper->getcolnamesmap((char*)query.c_str());
+	return getcolnamesmap((char*)query.c_str());
 }
 
 //Set Data base in Immediate Transaction mode
 bool database::SetImmediate()
 {
-	if(Helper == NULL)
+	if(db == NULL)
 	{
 		return false;
 	}
-	return Helper->command((char*)"BEGIN IMMEDIATE TRANSACTION");
+	return Command((char*)"BEGIN IMMEDIATE TRANSACTION");
 }
 
 //Commit all transactions
 bool database::Commit()
 {
-	if(Helper == NULL)
+	if(db == NULL)
 	{
 		return false;
 	}
 
-	return Helper->command((char*)"COMMIT TRANSACTION");
+	return Command((char*)"COMMIT TRANSACTION");
 }
 
 bool database::IsTransactionActive()
 {
-	return Helper->getautocommit();
+	return getautocommit();
 }
 
 bool database::TableExist(string& tablename)
 {
 	string sqlcmd = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + tablename + "';";
-	vector<vector<string> > tbl = Helper->query((char*)sqlcmd.c_str());
+	vector<vector<string> > tbl = Query((char*)sqlcmd.c_str());
 	if(tbl.size() == 0)
 	{
 		return false;
