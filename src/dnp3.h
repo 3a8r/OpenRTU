@@ -18,8 +18,6 @@
 #include <opendnp3/outstation/SimpleCommandHandler.h>
 #include <opendnp3/outstation/Database.h>
 #include <opendnp3/LogLevels.h>
-//#include "dnp3/ace6000.h"
-//#include "object_factory.h"
 
 using namespace std;
 using namespace opendnp3;
@@ -85,7 +83,7 @@ public:
 	static map<string, int> objects;
 
     std::shared_ptr<asiodnp3::IChannel> channel;
-    std::shared_ptr<opendnp3::OutstationStackConfig> stackConfig; //TODO: options for creating stackConfig
+    std::shared_ptr<opendnp3::OutstationStackConfig> stackConfig;
     asiodnp3::IOutstation *outstation;
 
     std::shared_ptr<IChannel> create_dnp3_channel(std::string name, int port);
