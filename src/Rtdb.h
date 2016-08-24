@@ -8,7 +8,8 @@
 #include <vector>
 #ifndef OPENRTU_SRC_RTDB_H_
 #define OPENRTU_SRC_RTDB_H_
-
+#include "variable.h"
+#include "dnp3.h"
 class Rtdb {
 
 public:
@@ -27,6 +28,14 @@ private:
 	int  Revision;
 	std::string Name;
 	std::string Description;
+
+
+	// Variable List
+	vector<variable*> VariableList;
+
+
+	// DNP3 Variable List
+	vector<dnp3> DNP3List;
 
 public:
 	Rtdb();

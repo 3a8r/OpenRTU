@@ -26,7 +26,7 @@ void dnp3::init_objects(void)
     {
     	for(uint16_t i = 0; i< DNP3DataList.size();i++)
     	{
-    		objects[DNP3DataList[i]->Name] = DNP3DataList[i]->Index;
+    		objects[DNP3DataList[i]->Name] = DNP3DataList[i]->DNP3Index;
     	}
     }
 }

@@ -16,6 +16,7 @@
 #include <fstream>
 #include <string.h>
 #include <sys/stat.h>
+#include "dnp3.h"
 #include "database.h"
 using namespace std;
 
@@ -33,9 +34,13 @@ Rtdb* Rtdb::Instance(){
 }
 
 Rtdb::Rtdb() {
-
+	ID = 0;
+	Name = "";
+	Description = "";
 }
 bool Rtdb::LoadConfigFile(){
+
+	int rows = 0;
 
 	std::string fulldbfilepath = ProjectPath + ConfigFileName;
 
@@ -81,7 +86,7 @@ bool Rtdb::LoadConfigFile(){
 	database DB(fulldbfilepath);
 
 
-	// Read RTU Config Table from sqlite file
+	/*------------------------ Read RTU Config Table from sqlite file -----------------*/
 
 	std::string tblname = "RTUConfig";
 	vector<vector<string> > tbl = DB.GetTableValues(tblname);
@@ -91,7 +96,116 @@ bool Rtdb::LoadConfigFile(){
 	istringstream( tbl[0][tblinfo["Description"] ] ) >> Description;
 	istringstream( tbl[0][tblinfo["Revision"] ] ) >> Revision;
 
-	return false;
+
+	/*-------------------------Variable-----------------------------------------------*/
+
+
+	//Filling Table Name
+	tblname = "Variable";
+
+	//Reading All Variables
+	tblinfo.clear();
+	tbl = DB.GetTableValues(tblname, NULL);
+	tblinfo = DB.GetTableFields(tblname);
+
+	uint32_t 	VarNameID;
+	string	 	VarName;
+	uint32_t	Type;
+	string		Description;
+	uint32_t	InitialValue;
+
+	printf("\nReading All Variable Data ...");
+
+	rows = tbl.size();
+
+
+	for(int i=0;i<rows;i++)
+	{
+		istringstream( tbl[i][tblinfo["VarID"]]) >> VarNameID;
+		istringstream( tbl[i][tblinfo["VarName"]]) >> VarName;
+		istringstream( tbl[i][tblinfo["Type"]]) >> Type;
+		istringstream( tbl[i][tblinfo["Description"]]) >> Description;
+		istringstream( tbl[i][tblinfo["InitialValue"]]) >> InitialValue;
+
+		VariableList.push_back(new variable(VarNameID,VarName,Type,Description,InitialValue));
+	}
+
+
+	/*-------------------------DNP3-----------------------------------------------*/
+
+	//Filling Table Name
+	tblname = "DNP3";
+	//Reading All DlmsData
+	tblinfo.clear();
+	tbl = DB.GetTableValues(tblname, NULL);
+	tblinfo = DB.GetTableFields(tblname);
+
+	uint32_t DNP3ID;
+	string	 PortName;
+	uint32_t DataID;
+	string   DNP3_OUTSTATION_Name;
+	uint32_t DNP3_Port;
+	uint32_t NoOfObject;
+	bool	 AllowUnsolicited;
+	uint32_t LocalAddr;
+	uint32_t RemoteAddr;
+
+
+	printf("\nReading DNP3 ...");
+
+	rows = tbl.size();
+
+
+	for(int i=0;i<rows;i++)
+	{
+		istringstream( tbl[i][tblinfo["ID"]]) >> DNP3ID;
+		istringstream( tbl[i][tblinfo["PortName"]]) >> PortName;
+		istringstream( tbl[i][tblinfo["DataID"]]) >> DataID;
+		istringstream( tbl[i][tblinfo["OutstationName"]]) >> DNP3_OUTSTATION_Name;
+		istringstream( tbl[i][tblinfo["PortNumber"]]) >> DNP3_Port;
+		istringstream( tbl[i][tblinfo["NoOfObject"]]) >> NoOfObject;
+		istringstream( tbl[i][tblinfo["AllowUnsolicited"]]) >> AllowUnsolicited;
+		istringstream( tbl[i][tblinfo["LocalAddr"]]) >> LocalAddr;
+		istringstream( tbl[i][tblinfo["RemoteAddr"]]) >> RemoteAddr;
+
+		dnp3 _dnp3(DNP3ID,PortName,DataID,DNP3_OUTSTATION_Name,
+				  DNP3_Port,NoOfObject,AllowUnsolicited,LocalAddr,RemoteAddr);
+
+
+		/*-------------------------DNP3Data-----------------------------------------------*/
+
+
+		string tblname = "DNP3Data";
+		vector<vector<string> > sdtbl;
+		map<string, int> sdtblinfo;
+		multimap<string, string> clause;
+		pair<string, string> p("DNP3ID",tbl[i][tblinfo["DNP3ID"]]);
+		clause.insert(p);
+		sdtbl = DB.GetTableValues(tblname,NULL,&clause);
+		sdtblinfo = DB.GetTableFields(tblname);
+
+		for(vector<vector<string> >::iterator row = sdtbl.begin(); row != sdtbl.end(); row++)
+		{
+
+			uint32_t DNP3DataID;
+			uint32_t DNP3ID;
+			uint32_t VarNameID;
+			string	 Name;
+			uint32_t Index;
+
+			istringstream( (*row)[sdtblinfo["ID"]]) >> DNP3DataID;
+			istringstream( (*row)[sdtblinfo["DNP3ID"]]) >> DNP3ID;
+			istringstream( (*row)[sdtblinfo["VarNameID"]]) >> VarNameID;
+			istringstream( (*row)[sdtblinfo["Name"]]) >> Name;
+			istringstream( (*row)[sdtblinfo["DNP3Index"]]) >> Index;
+
+
+			_dnp3.DNP3DataList.push_back(new dnp3data(DNP3DataID,DNP3ID,VarNameID,Name,Index));
+		}
+		DNP3List.push_back(_dnp3);
+	}
+
+	return true;
 }
 
 Rtdb::~Rtdb() {
