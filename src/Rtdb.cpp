@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include "dnp3.h"
 #include "database.h"
+#include "ModbusServer.h"
 using namespace std;
 
 Rtdb* Rtdb::instance = NULL;
@@ -37,6 +38,7 @@ Rtdb::Rtdb() {
 	ID = 0;
 	Name = "";
 	Description = "";
+	Revision = 0;
 }
 bool Rtdb::LoadConfigFile(){
 
@@ -205,6 +207,45 @@ bool Rtdb::LoadConfigFile(){
 		DNP3List.push_back(_dnp3);
 	}
 
+	/*-------------------------ModbusServer--------------------------------------------*/
+	//Filling Table Name
+	tblname = "ModbusServer";
+	//Reading All DlmsData
+	tblinfo.clear();
+	tbl = DB.GetTableValues(tblname, NULL);
+	tblinfo = DB.GetTableFields(tblname);
+
+	uint16_t ID;
+	uint16_t ModbusType;
+	uint16_t Port;
+	std::string IP;
+	uint16_t StopBit;
+	uint16_t DataSize;
+	uint16_t Parity;
+	uint16_t Baudrate;
+	std::string SerialPortName;
+	std::string Name;
+	uint16_t SlaveNumber;
+	uint16_t DiagnosticID;
+	uint16_t ProtocolAddress;
+	std::vector<ModbusServerGroup> ModbusGroup;
+
+	for(int i=0;i<rows;i++)
+	{
+		istringstream( tbl[i][tblinfo["ID"]]) >> ID;
+		istringstream( tbl[i][tblinfo["ModbusType"]]) >> ModbusType;
+		istringstream( tbl[i][tblinfo["Port"]]) >> Port;
+		istringstream( tbl[i][tblinfo["IP"]]) >> IP;
+		istringstream( tbl[i][tblinfo["StopBit"]]) >> StopBit;
+		istringstream( tbl[i][tblinfo["DataSize"]]) >> DataSize;
+		istringstream( tbl[i][tblinfo["Parity"]]) >> Parity;
+		istringstream( tbl[i][tblinfo["Baudrate"]]) >> Baudrate;
+		istringstream( tbl[i][tblinfo["SerialPortName"]]) >> SerialPortName;
+		istringstream( tbl[i][tblinfo["Name"]]) >> Name;
+		istringstream( tbl[i][tblinfo["SlaveNumber"]]) >> SlaveNumber;
+		istringstream( tbl[i][tblinfo["DiagnosticID"]]) >> DiagnosticID;
+		istringstream( tbl[i][tblinfo["ProtocolAddress"]]) >> ProtocolAddress;
+	}
 	return true;
 }
 

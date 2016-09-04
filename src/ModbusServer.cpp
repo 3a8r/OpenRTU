@@ -5,14 +5,10 @@
  *      Author: saber
  */
 
-#include "modbus.h"
+#include "ModbusServer.h"
 
-modbus::modbus() {
-	// TODO Auto-generated constructor stub
 
-}
-
-modbus::~modbus() {
+ModbusServer::~ModbusServer() {
 	// TODO Auto-generated destructor stub
 }
 
