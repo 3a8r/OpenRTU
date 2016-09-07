@@ -16,6 +16,7 @@
 #include <fstream>
 #include <string.h>
 #include <sys/stat.h>
+#include <memory>
 #include "dnp3.h"
 #include "database.h"
 #include "ModbusServer.h"
@@ -71,7 +72,7 @@ bool Rtdb::LoadConfigFile(){
 		unsigned char buffer[100];
 		do{
 			::fstat(fd,&fst);
-			printf("\File mode = %d file size = %ld ",fst.st_mode,fst.st_size);
+			printf("\nFile mode = %d file size = %ld ",fst.st_mode,fst.st_size);
 			::lseek(fd,0,SEEK_SET);
 			::read(fd,buffer,sizeof(buffer));
 			int pagesize = (buffer[16]<<8) | (buffer[17]<<16);
@@ -228,7 +229,6 @@ bool Rtdb::LoadConfigFile(){
 	uint16_t SlaveNumber;
 	uint16_t DiagnosticID;
 	uint16_t ProtocolAddress;
-	std::vector<ModbusServerGroup> ModbusGroup;
 
 	for(int i=0;i<rows;i++)
 	{
@@ -245,6 +245,58 @@ bool Rtdb::LoadConfigFile(){
 		istringstream( tbl[i][tblinfo["SlaveNumber"]]) >> SlaveNumber;
 		istringstream( tbl[i][tblinfo["DiagnosticID"]]) >> DiagnosticID;
 		istringstream( tbl[i][tblinfo["ProtocolAddress"]]) >> ProtocolAddress;
+
+		ModbusServer _mbserver(ID,ModbusType,Port,IP,StopBit,DataSize,
+				 	 	 	   Parity,Baudrate,SerialPortName, Name,SlaveNumber,
+							   DiagnosticID,ProtocolAddress);
+
+
+		/*-------------------------ModbusServerGroup-----------------------------------------------*/
+
+
+		string tblname = "ModbusServerGroup";
+		vector<vector<string> > sdtbl;
+		map<string, int> sdtblinfo;
+		multimap<string, string> clause;
+		pair<string, string> p("ModbusServerID",tbl[i][tblinfo["ModbusServerID"]]);
+		clause.insert(p);
+		sdtbl = DB.GetTableValues(tblname,NULL,&clause);
+		sdtblinfo = DB.GetTableFields(tblname);
+
+		for(vector<vector<string> >::iterator row = sdtbl.begin(); row != sdtbl.end(); row++)
+		{
+
+
+			uint16_t ID;
+			uint16_t ModbusServerID;
+			std::string Name;
+			uint16_t Start;
+			uint16_t Len;
+			uint16_t Function;
+			uint16_t CycleTime;
+
+			istringstream( (*row)[sdtblinfo["ID"]]) >> ID;
+			istringstream( (*row)[sdtblinfo["ModbusServerID"]]) >> ModbusServerID;
+			istringstream( (*row)[sdtblinfo["Name"]]) >> Name;
+			istringstream( (*row)[sdtblinfo["Start"]]) >> Start;
+			istringstream( (*row)[sdtblinfo["Len"]]) >> Len;
+			istringstream( (*row)[sdtblinfo["Function"]]) >> Function;
+			istringstream( (*row)[sdtblinfo["CycleTime"]]) >> CycleTime;
+
+			_mbserver.ModbusGroup.push_back(make_shared<ModbusServerGroup>(ID,ModbusServerID,Name,Start,
+					                                                       Len,Function,CycleTime));
+
+			/*-------------------------ModbusServerPoint-----------------------------------------------*/
+			string tblname2 = "ModbusServerGroup";
+			vector<vector<string> > sdtbl2;
+			map<string, int> sdtblinfo2;
+			multimap<string, string> clause2;
+			pair<string, string> p("ServerGroupID",tbl[i][sdtblinfo["ID"]]);
+			clause2.insert(p);
+			sdtbl2 = DB.GetTableValues(tblname2,NULL,&clause2);
+			sdtblinfo2 = DB.GetTableFields(tblname);
+		}
+
 	}
 	return true;
 }
