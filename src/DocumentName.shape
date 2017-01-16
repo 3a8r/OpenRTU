@@ -1,1 +1,109 @@
-[]
+[
+  {
+    "type": "shape_designer.figure.PolyRect",
+    "id": "79e4f662-8ba7-d702-0b21-88b3072c0398",
+    "x": 740,
+    "y": 355,
+    "width": 142,
+    "height": 40,
+    "alpha": 1,
+    "angle": 0,
+    "userData": {
+      "baseClass": "draw2d.SetFigure",
+      "code": "/**\n * by 'Draw2D Shape Designer'\n *\n * Custom JS code to tweak the standard behaviour of the generated\n * shape. add your custome code and event handler here.\n *\n *\n */\ntestShape = testShape.extend({\n\n    init: function(attr, setter, getter){\n         this._super(attr, setter, getter);\n\n         // your special code here\n    },\n\n    /**\n     *  Called by the simulator for every calculation\n     *  loop\n     *  @required\n     **/\n    calculate:function()\n    {\n    },\n\n\n    /**\n     *  Called if the simulation mode is starting\n     *  @required\n     **/\n    onStart:function()\n    {\n    },\n\n    /**\n     *  Called if the simulation mode is stopping\n     *  @required\n     **/\n    onStop:function()\n    {\n    }\n});"
+    },
+    "cssClass": "shape_designer_figure_PolyRect",
+    "ports": [],
+    "bgColor": "#FFFFFF",
+    "color": "#303030",
+    "stroke": 1,
+    "radius": 0,
+    "dasharray": null,
+    "vertices": [
+      {
+        "x": 882,
+        "y": 395
+      },
+      {
+        "x": 740,
+        "y": 395
+      },
+      {
+        "x": 740,
+        "y": 355
+      },
+      {
+        "x": 882,
+        "y": 355
+      }
+    ],
+    "blur": 0,
+    "filters": [
+      {
+        "name": "shape_designer.filter.PositionFilter"
+      },
+      {
+        "name": "shape_designer.filter.SizeFilter"
+      },
+      {
+        "name": "shape_designer.filter.StrokeFilter"
+      },
+      {
+        "name": "shape_designer.filter.FillColorFilter"
+      }
+    ]
+  },
+  {
+    "type": "shape_designer.figure.PolyRect",
+    "id": "0887803a-092c-64a2-2eda-331944a83ae4",
+    "x": 693,
+    "y": 189,
+    "width": 226,
+    "height": 77,
+    "alpha": 1,
+    "angle": 0,
+    "userData": {
+      "name": "Rectangle"
+    },
+    "cssClass": "shape_designer_figure_PolyRect",
+    "ports": [],
+    "bgColor": "#FFFFFF",
+    "color": "#303030",
+    "stroke": 1,
+    "radius": 0,
+    "dasharray": null,
+    "vertices": [
+      {
+        "x": 693,
+        "y": 189
+      },
+      {
+        "x": 919,
+        "y": 189
+      },
+      {
+        "x": 919,
+        "y": 266
+      },
+      {
+        "x": 693,
+        "y": 266
+      }
+    ],
+    "blur": 0,
+    "filters": [
+      {
+        "name": "shape_designer.filter.PositionFilter"
+      },
+      {
+        "name": "shape_designer.filter.SizeFilter"
+      },
+      {
+        "name": "shape_designer.filter.StrokeFilter"
+      },
+      {
+        "name": "shape_designer.filter.FillColorFilter"
+      }
+    ]
+  }
+]
